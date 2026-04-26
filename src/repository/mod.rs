@@ -7,12 +7,13 @@ use surrealdb::types::RecordId;
 
 pub mod user_repository;
 pub mod task_repository;
+use crate::error::ApiError;
 
 pub trait Repository {
     type Record: Serialize + DeserializeOwned + Send + Sync;
 
     fn new(db: Arc<Surreal<Db>>) -> Self;
-    async fn get(&self, id: RecordId) -> Option<Self::Record>;
-    async fn list(&self) -> Vec<Self::Record>;
-    async fn create(&self, record: Self::Record) -> Self::Record;
+    async fn get(&self, id: RecordId) -> Result<Option<Self::Record>, ApiError>;
+    async fn list(&self) -> Result<Vec<Self::Record>, ApiError>;
+    async fn create(&self, record: Self::Record) -> Result<Self::Record, ApiError>;
 }

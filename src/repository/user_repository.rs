@@ -2,7 +2,7 @@ use std::sync::Arc;
 use surrealdb::Surreal;
 use surrealdb::engine::local::Db;
 use surrealdb::types::RecordId;
-use crate::models::user::{User, UserDraft};
+use crate::{error::ApiError, models::user::{User, UserDraft}};
 use super::Repository;
 
 #[derive(Clone)]
@@ -21,28 +21,30 @@ impl Repository for UserRepository {
         }
     }
 
-    async fn get(&self, id: RecordId) -> Option<Self::Record> {
-        self.db
+    async fn get(&self, id: RecordId) -> Result<Option<Self::Record>, ApiError> {
+        let user = self.db
             .select(id)
             .await
-            .unwrap_or(None)
+            .unwrap_or(None);
+
+        Ok(user)
     }
 
-    async fn list(&self) -> Vec<Self::Record> {
-        self.db
+    async fn list(&self) -> Result<Vec<Self::Record>, ApiError> {
+        let users = self.db
             .select(self.table)
-            .await
-            .expect("Failed to execute select query")
+            .await?;
+
+        Ok(users)
     }
 
-    async fn create(&self, user: Self::Record) -> Self::Record {
-        let record: Self::Record = self.db
+    async fn create(&self, user: Self::Record) -> Result<Self::Record, ApiError> {
+        let user: Self::Record = self.db
             .create(self.table)
             .content(user)
-            .await
-            .expect("Database communication failed")
-            .expect("Template mismatch");
+            .await?
+            .ok_or(ApiError::InternalServerError)?;
 
-        record
+        Ok(user)
     }
 }

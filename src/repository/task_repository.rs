@@ -2,7 +2,7 @@ use std::sync::Arc;
 use surrealdb::Surreal;
 use surrealdb::engine::local::Db;
 use surrealdb::types::RecordId;
-use crate::models::task::{Task, TaskDraft};
+use crate::{error::ApiError, models::task::{Task, TaskDraft}};
 use super::Repository;
 
 #[derive(Clone)]
@@ -21,28 +21,29 @@ impl Repository for TaskRepository {
         }
     }
 
-    async fn get(&self, id: RecordId) -> Option<Self::Record> {
-        self.db
+    async fn get(&self, id: RecordId) -> Result<Option<Self::Record>, ApiError> {
+        let task = self.db
             .select(id)
-            .await
-            .unwrap_or(None)
+            .await?;
+
+        Ok(task)
     }
 
-    async fn list(&self) -> Vec<Self::Record> {
-        self.db
+    async fn list(&self) -> Result<Vec<Self::Record>, ApiError> {
+        let tasks = self.db
             .select(self.table)
-            .await
-            .expect("Failed to execute select query")
+            .await?;
+
+        Ok(tasks)
     }
 
-    async fn create(&self, task: Self::Record) -> Self::Record {
-        let record: Self::Record = self.db
+    async fn create(&self, task: Self::Record) -> Result<Self::Record, ApiError> {
+        let task: Self::Record = self.db
             .create(self.table)
             .content(task)
-            .await
-            .expect("Database communication failed")
-            .expect("Template mismatch");
+            .await?
+            .ok_or(ApiError::InternalServerError)?;
 
-        record
+        Ok(task)
     }
 }

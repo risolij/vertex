@@ -1,10 +1,21 @@
-use axum::{Json, http::StatusCode, response::IntoResponse};
+use axum::Json;
+use axum::http::StatusCode;
+use axum::response::IntoResponse;
 use serde_json::json;
+use thiserror::Error;
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum ApiError {
+    #[error("Database Error")]
+    Database(#[from] surrealdb::Error),
+
+    #[error("NotFound")]
     NotFound,
+
+    #[error("InvalidPath")]
     InvalidPath(String),
+
+    #[error("Internal Server Error")]
     InternalServerError,
 }
 
@@ -19,6 +30,9 @@ impl IntoResponse for ApiError {
             },
             ApiError::InternalServerError => {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Something went wrong".to_owned())
+            },
+            ApiError::Database(db) => {
+                (StatusCode::INTERNAL_SERVER_ERROR, db.to_string())
             }
         };
 

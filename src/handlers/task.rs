@@ -12,7 +12,7 @@ type TaskProvider = State<TaskService<TaskRepository, UserRepository>>;
 pub async fn get_tasks(
     State(service): TaskProvider
 ) -> Result<Json<Vec<TaskView>>, ApiError> {
-    let tasks = service.get_all().await;
+    let tasks = service.get_all().await?;
 
     Ok(Json(tasks))
 }
@@ -26,7 +26,7 @@ pub async fn get_task(
 
     let task = service
         .get_by_id(record_id)
-        .await
+        .await?
         .ok_or(ApiError::NotFound)?;
 
     Ok(Json(task))
@@ -36,7 +36,7 @@ pub async fn create_task(
     State(service): TaskProvider,
     Json(draft): Json<TaskDraft>
 ) -> Result<Json<TaskView>, ApiError> {
-    let task = service.create(draft).await;
+    let task = service.create(draft).await?;
 
     Ok(Json(task))
 }

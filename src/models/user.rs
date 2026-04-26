@@ -1,3 +1,4 @@
+use crate::error::ApiError;
 use crate::service::{Service, UserService};
 use crate::repository::Repository;
 use crate::repository::user_repository::UserRepository;
@@ -41,22 +42,31 @@ impl Service for UserService<UserRepository> {
     type View = UserView;
     type Draft = UserDraft;
 
-    async fn get_by_id(&self, id: RecordId) -> Option<Self::View> {
-        self.repository.get(id).await.map(|user| UserView::from(user))
+    async fn get_by_id(&self, id: RecordId) -> Result<Option<Self::View>, ApiError> {
+        let view = self
+            .repository
+            .get(id)
+            .await?
+            .map(|user| UserView::from(user));
+
+        Ok(view)
     }
 
-    async fn get_all(&self) -> Vec<Self::View> {
-        self.repository
+    async fn get_all(&self) -> Result<Vec<Self::View>, ApiError> {
+        let views = self.repository
             .list()
-            .await
+            .await?
             .into_iter()
             .map(|user| UserView::from(user))
-            .collect()
+            .collect();
+
+        Ok(views)
     }
 
-    async fn create(&self, draft: Self::Draft) -> Self::View {
+    async fn create(&self, draft: Self::Draft) -> Result<Self::View, ApiError> {
         let user = User::from(draft);
-        let user = self.repository.create(user).await;
-        UserView::from(user)
+        let user = self.repository.create(user).await?;
+
+        Ok(UserView::from(user))
     }
 }

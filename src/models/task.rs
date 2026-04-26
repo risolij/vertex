@@ -2,6 +2,7 @@ use surrealdb::types::{RecordId, SurrealValue};
 use serde::{Deserialize, Serialize};
 
 use super::criticality::{State, Impact, Urgency, Priority};
+use crate::error::ApiError;
 use crate::service::{Service, TaskService};
 use crate::repository::task_repository::TaskRepository;
 use crate::repository::user_repository::UserRepository;
@@ -64,27 +65,30 @@ impl Service for TaskService<TaskRepository, UserRepository> {
     type View = TaskView;
     type Draft = TaskDraft;
 
-    async fn get_by_id(&self, id: RecordId) -> Option<Self::View> {
-        self.task_repository
+    async fn get_by_id(&self, id: RecordId) -> Result<Option<Self::View>, ApiError> {
+        let view = self.task_repository
             .get(id)
-            .await
-            .map(|task| TaskView::from(task))
-        
+            .await?
+            .map(|task| TaskView::from(task));
+
+        Ok(view)
     }
 
-    async fn get_all(&self) -> Vec<Self::View> {
-        self.task_repository
+    async fn get_all(&self) -> Result<Vec<Self::View>, ApiError> {
+        let views = self.task_repository
             .list()
-            .await
+            .await?
             .into_iter()
             .map(|task| TaskView::from(task))
-            .collect()
+            .collect();
+
+        Ok(views)
         
     }
 
-    async fn create(&self, draft: Self::Draft) -> Self::View {
+    async fn create(&self, draft: Self::Draft) -> Result<Self::View, ApiError> {
         let task = Task::from(draft);
-        let task = self.task_repository.create(task).await;
-        TaskView::from(task)
+        let task = self.task_repository.create(task).await?;
+        Ok(TaskView::from(task))
     }
 }

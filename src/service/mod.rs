@@ -1,13 +1,13 @@
-use crate::repository::Repository;
+use crate::{error::ApiError, repository::Repository};
 use surrealdb::types::RecordId;
 
 pub trait Service {
     type View;
     type Draft;
 
-    async fn get_by_id(&self, id: RecordId) -> Option<Self::View>;
-    async fn get_all(&self) -> Vec<Self::View>;
-    async fn create(&self, draft: Self::Draft) -> Self::View;
+    async fn get_by_id(&self, id: RecordId) -> Result<Option<Self::View>, ApiError>;
+    async fn get_all(&self) -> Result<Vec<Self::View>, ApiError>;
+    async fn create(&self, draft: Self::Draft) -> Result<Self::View, ApiError>;
 }
 
 #[derive(Clone)]
