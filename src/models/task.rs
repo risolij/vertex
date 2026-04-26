@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use super::criticality::{State, Impact, Urgency, Priority};
 use crate::error::ApiError;
+use crate::repository::group_repository::GroupRepository;
 use crate::service::{Service, TaskService};
 use crate::repository::task_repository::TaskRepository;
 use crate::repository::user_repository::UserRepository;
@@ -61,7 +62,7 @@ impl From<Task> for TaskView {
     }
 }
 
-impl Service for TaskService<TaskRepository, UserRepository> {
+impl Service for TaskService<TaskRepository, UserRepository, GroupRepository> {
     type View = TaskView;
     type Draft = TaskDraft;
 

@@ -6,14 +6,14 @@ use axum::extract::FromRef;
 
 #[derive(Clone)]
 pub struct ApplicationState {
-    pub tasks: TaskService<TaskRepository, UserRepository>,
+    pub tasks: TaskService<TaskRepository, UserRepository, GroupRepository>,
     pub users: UserService<UserRepository>,
     pub groups: GroupService<GroupRepository>
 }
 
 impl ApplicationState {
     pub fn new(
-        tasks: TaskService<TaskRepository, UserRepository>,
+        tasks: TaskService<TaskRepository, UserRepository, GroupRepository>,
         users: UserService<UserRepository>,
         groups: GroupService<GroupRepository>
     ) -> Self {
@@ -21,7 +21,7 @@ impl ApplicationState {
     }
 }
 
-impl FromRef<ApplicationState> for TaskService<TaskRepository, UserRepository> {
+impl FromRef<ApplicationState> for TaskService<TaskRepository, UserRepository, GroupRepository> {
     fn from_ref(state: &ApplicationState) -> Self {
         state.tasks.clone()
     }

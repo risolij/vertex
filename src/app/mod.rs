@@ -7,7 +7,7 @@ use surrealdb::engine::local::Mem;
 use std::sync::Arc;
 use crate::repository::group_repository::GroupRepository;
 use crate::service::{GroupService, TaskService, UserService};
-use crate::repository::{Repository, group_repository};
+use crate::repository::Repository;
 use crate::repository::task_repository::TaskRepository;
 use crate::repository::user_repository::UserRepository;
 
@@ -28,6 +28,7 @@ pub async fn run() {
     let task_service = TaskService::new(
         task_repository.clone(),
         user_repository.clone(),
+        group_repository.clone()
     );
 
     let group_service = GroupService::new(group_repository);

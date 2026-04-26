@@ -11,35 +11,45 @@ pub trait Service {
 }
 
 #[derive(Clone)]
-pub struct UserService<R> where R: Repository {
+pub struct UserService<R>
+where
+    R: Repository
+{
     pub repository: R
 }
 
-impl<R> UserService<R> where R: Repository {
+impl<R> UserService<R>
+where
+    R: Repository
+{
     pub fn new(repository: R) -> Self {
         Self { repository }
     }
 }
 
 #[derive(Clone)]
-pub struct TaskService<T, U>
+pub struct TaskService<T, U, G>
 where
     T: Repository,
-    U: Repository
+    U: Repository,
+    G: Repository
 {
     pub task_repository: T,
-    pub user_repository: U
+    pub user_repository: U,
+    pub group_repository: G
 }
 
-impl<T, U> TaskService<T, U>
+impl<T, U, G> TaskService<T, U, G>
 where
     T: Repository,
-    U: Repository
+    U: Repository,
+    G: Repository
 {
-    pub fn new(task_repository: T, user_repository: U) -> Self {
+    pub fn new(task_repository: T, user_repository: U, group_repository: G) -> Self {
         Self {
             task_repository,
-            user_repository
+            user_repository,
+            group_repository
         }
     }
 }
