@@ -1,4 +1,4 @@
-use crate::service::UserService;
+use crate::service::{Service, UserService};
 use crate::repository::Repository;
 use crate::repository::user_repository::UserRepository;
 use surrealdb::types::{RecordId, SurrealValue};
@@ -24,17 +24,39 @@ impl From<UserDraft> for User {
     }
 }
 
-impl UserService<UserRepository> {
-    pub async fn get_user(&self, id: RecordId) -> Option<User> {
-        self.repository.get(id).await
+#[derive(Serialize, SurrealValue)]
+pub struct UserView {
+    name: String
+}
+
+impl From<User> for UserView {
+    fn from(user: User) -> Self {
+        Self {
+            name: user.name
+        }
+    }
+}
+
+impl Service for UserService<UserRepository> {
+    type View = UserView;
+    type Draft = UserDraft;
+
+    async fn get_by_id(&self, id: RecordId) -> Option<Self::View> {
+        self.repository.get(id).await.map(|user| UserView::from(user))
     }
 
-    pub async fn get_users(&self) -> Vec<User> {
-        self.repository.list().await
+    async fn get_all(&self) -> Vec<Self::View> {
+        self.repository
+            .list()
+            .await
+            .into_iter()
+            .map(|user| UserView::from(user))
+            .collect()
     }
 
-    pub async fn create_user(&self, draft: UserDraft) -> User {
+    async fn create(&self, draft: Self::Draft) -> Self::View {
         let user = User::from(draft);
-        self.repository.create(user).await
+        let user = self.repository.create(user).await;
+        UserView::from(user)
     }
 }

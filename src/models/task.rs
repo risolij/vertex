@@ -2,7 +2,7 @@ use surrealdb::types::{RecordId, SurrealValue};
 use serde::{Deserialize, Serialize};
 
 use super::criticality::{State, Impact, Urgency, Priority};
-use crate::service::TaskService;
+use crate::service::{Service, TaskService};
 use crate::repository::task_repository::TaskRepository;
 use crate::repository::user_repository::UserRepository;
 use crate::repository::Repository;
@@ -28,7 +28,7 @@ pub struct TaskDraft {
 
 impl From<TaskDraft> for Task {
     fn from(draft: TaskDraft) -> Self {
-        Task {
+        Self {
             id: None,
             state: draft.state,
             impact: draft.impact,
@@ -39,19 +39,52 @@ impl From<TaskDraft> for Task {
     }
 }
 
-impl TaskService<TaskRepository, UserRepository> {
-    pub async fn get_tasks(&self) -> Vec<Task> {
-        self.task_repository.list().await
+#[derive(Serialize, SurrealValue)]
+pub struct TaskView {
+    id: RecordId,
+    state: State,
+    impact: Impact,
+    urgency: Urgency,
+    priority: Priority
+}
+
+impl From<Task> for TaskView {
+    fn from(task: Task) -> Self {
+        Self {
+            id: task.id.unwrap(),
+            state: task.state,
+            impact: task.impact,
+            urgency: task.urgency,
+            priority: task.priority
+        }
+    }
+}
+
+impl Service for TaskService<TaskRepository, UserRepository> {
+    type View = TaskView;
+    type Draft = TaskDraft;
+
+    async fn get_by_id(&self, id: RecordId) -> Option<Self::View> {
+        self.task_repository
+            .get(id)
+            .await
+            .map(|task| TaskView::from(task))
+        
     }
 
-    pub async fn get_task(&self, id: RecordId) -> Option<Task> {
-        self.task_repository.get(id).await
+    async fn get_all(&self) -> Vec<Self::View> {
+        self.task_repository
+            .list()
+            .await
+            .into_iter()
+            .map(|task| TaskView::from(task))
+            .collect()
+        
     }
 
-    pub async fn create_task(&self, draft: TaskDraft) -> Task {
+    async fn create(&self, draft: Self::Draft) -> Self::View {
         let task = Task::from(draft);
         let task = self.task_repository.create(task).await;
-
-        task
+        TaskView::from(task)
     }
 }
