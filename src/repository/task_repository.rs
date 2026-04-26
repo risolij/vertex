@@ -13,7 +13,6 @@ pub struct TaskRepository {
 
 impl Repository for TaskRepository {
     type Record = Task;
-    type Draft = TaskDraft;
 
     fn new(db: Arc<Surreal<Db>>) -> Self {
         Self {
@@ -36,10 +35,10 @@ impl Repository for TaskRepository {
             .expect("Failed to execute select query")
     }
 
-    async fn create(&self, draft: Self::Draft) -> Self::Record {
+    async fn create(&self, task: Self::Record) -> Self::Record {
         let record: Self::Record = self.db
             .create(self.table)
-            .content(draft)
+            .content(task)
             .await
             .expect("Database communication failed")
             .expect("Template mismatch");

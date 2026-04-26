@@ -1,4 +1,4 @@
-use crate::service::Service;
+use crate::service::UserService;
 use crate::repository::Repository;
 use crate::repository::user_repository::UserRepository;
 use surrealdb::types::{RecordId, SurrealValue};
@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, SurrealValue)]
 pub struct User {
-    id: RecordId,
+    id: Option<RecordId>,
     name: String
 }
 
@@ -15,7 +15,16 @@ pub struct UserDraft {
     name: String,
 }
 
-impl Service<UserRepository> {
+impl From<UserDraft> for User {
+    fn from(draft: UserDraft) -> Self {
+        User {
+            id: None,
+            name: draft.name
+        }
+    }
+}
+
+impl UserService<UserRepository> {
     pub async fn get_user(&self, id: RecordId) -> Option<User> {
         self.repository.get(id).await
     }
@@ -25,6 +34,7 @@ impl Service<UserRepository> {
     }
 
     pub async fn create_user(&self, draft: UserDraft) -> User {
-        self.repository.create(draft).await
+        let user = User::from(draft);
+        self.repository.create(user).await
     }
 }

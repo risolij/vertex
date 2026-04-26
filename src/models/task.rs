@@ -9,7 +9,7 @@ use crate::repository::Repository;
 
 #[derive(Deserialize, Serialize, SurrealValue)]
 pub struct Task {
-    id: RecordId,
+    id: Option<RecordId>,
     state: State,
     impact: Impact,
     urgency: Urgency,
@@ -23,7 +23,20 @@ pub struct TaskDraft {
     impact: Impact,
     urgency: Urgency,
     priority: Priority,
-    assigned_to: Option<RecordId>
+    assigned_to: Option<String>
+}
+
+impl From<TaskDraft> for Task {
+    fn from(draft: TaskDraft) -> Self {
+        Task {
+            id: None,
+            state: draft.state,
+            impact: draft.impact,
+            urgency: draft.urgency,
+            priority: draft.priority,
+            assigned_to: draft.assigned_to.map(|id| RecordId::parse_simple(&id).unwrap())
+        }
+    }
 }
 
 impl TaskService<TaskRepository, UserRepository> {
@@ -36,13 +49,8 @@ impl TaskService<TaskRepository, UserRepository> {
     }
 
     pub async fn create_task(&self, draft: TaskDraft) -> Task {
-        let task = if draft.assigned_to.is_some() {
-            let user = self.user_repository.get(draft.assigned_to.clone().unwrap()).await;
-            self.task_repository.create(draft).await
-
-        } else {
-            self.task_repository.create(draft).await
-        };
+        let task = Task::from(draft);
+        let task = self.task_repository.create(task).await;
 
         task
     }

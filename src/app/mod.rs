@@ -5,7 +5,7 @@ use axum::Router;
 use surrealdb::Surreal;
 use surrealdb::engine::local::Mem;
 use std::sync::Arc;
-use crate::service::{Service, TaskService};
+use crate::service::{UserService, TaskService};
 use crate::repository::Repository;
 use crate::repository::task_repository::TaskRepository;
 use crate::repository::user_repository::UserRepository;
@@ -20,14 +20,14 @@ pub async fn run() {
         .await
         .unwrap();
 
-    let task_repository= TaskRepository::new(db.clone());
+    let task_repository = TaskRepository::new(db.clone());
     let user_repository = UserRepository::new(db);
 
     let task_service = TaskService::new(
         task_repository.clone(),
         user_repository.clone()
     );
-    let user_service = Service::new(user_repository);
+    let user_service = UserService::new(user_repository);
 
     let app_state = ApplicationState::new(
         task_service,

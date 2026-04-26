@@ -1,11 +1,11 @@
 use crate::repository::Repository;
 
 #[derive(Clone)]
-pub struct Service<R> where R: Repository {
+pub struct UserService<R> where R: Repository {
     pub repository: R
 }
 
-impl<R> Service<R> where R: Repository {
+impl<R> UserService<R> where R: Repository {
     pub fn new(repository: R) -> Self {
         Self { repository }
     }

@@ -13,7 +13,6 @@ pub struct UserRepository {
 
 impl Repository for UserRepository {
     type Record = User;
-    type Draft = UserDraft;
 
     fn new(db: Arc<Surreal<Db>>) -> Self {
         Self {
@@ -36,10 +35,10 @@ impl Repository for UserRepository {
             .expect("Failed to execute select query")
     }
 
-    async fn create(&self, draft: Self::Draft) -> Self::Record {
+    async fn create(&self, user: Self::Record) -> Self::Record {
         let record: Self::Record = self.db
             .create(self.table)
-            .content(draft)
+            .content(user)
             .await
             .expect("Database communication failed")
             .expect("Template mismatch");
