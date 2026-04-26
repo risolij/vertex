@@ -5,17 +5,20 @@ use axum::routing::post;
 use crate::app::state::ApplicationState;
 use user::{get_users, get_user, create_user};
 use task::{get_tasks, get_task, create_task};
+use group::{get_groups, get_group, create_group};
 use health::ruok;
 
 pub mod health;
 pub mod task;
 pub mod user;
+pub mod group;
 
 pub fn create_router(state: ApplicationState) -> Router {
     Router::new()
         .route("/ruok", get(ruok))
         .nest("/users", user_routes())
         .nest("/tasks", task_routes())
+        .nest("/groups", group_routes())
         .with_state(state)
 }
 
@@ -29,5 +32,10 @@ fn task_routes() -> Router<ApplicationState> {
         Router::new()
         .route("/", get(get_tasks).post(create_task))
         .route("/{id}", get(get_task))
+}
 
+fn group_routes() -> Router<ApplicationState> {
+        Router::new()
+        .route("/", get(get_groups).post(create_group))
+        .route("/{id}", get(get_group))
 }

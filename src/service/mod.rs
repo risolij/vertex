@@ -43,3 +43,22 @@ where
         }
     }
 }
+
+#[derive(Clone)]
+pub struct GroupService<G>
+where
+    G: Repository
+{
+    pub repository: G
+}
+
+impl<G> GroupService<G>
+where
+    G: Repository
+{
+    pub fn new(repository: G) -> Self {
+        Self {
+            repository
+        }
+    }
+}
