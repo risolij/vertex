@@ -1,4 +1,4 @@
-use surrealdb::types::{RecordId, SurrealValue};
+use surrealdb::types::{RecordId, SurrealValue, Datetime};
 use serde::{Deserialize, Serialize};
 
 use super::criticality::{State, Impact, Urgency, Priority};
@@ -16,38 +16,60 @@ pub struct Task {
     impact: Impact,
     urgency: Urgency,
     priority: Priority,
+    opened: Datetime,
+    closed: Option<Datetime>,
     assigned_to: Option<RecordId>
 }
 
 #[derive(Serialize, Deserialize, SurrealValue)]
 pub struct TaskDraft {
-    state: State,
-    impact: Impact,
-    urgency: Urgency,
-    priority: Priority,
+    state: Option<State>,
+    impact: Option<Impact>,
+    urgency: Option<Urgency>,
     assigned_to: Option<String>
 }
 
-impl From<TaskDraft> for Task {
-    fn from(draft: TaskDraft) -> Self {
-        Self {
+impl TryFrom<TaskDraft> for Task {
+    type Error = ApiError;
+
+    fn try_from(draft: TaskDraft) -> Result<Self, Self::Error> {
+        let user_id = draft
+            .assigned_to
+            .map(|id| {
+                RecordId::parse_simple(&id)
+            })
+            .ok_or(ApiError::InternalServerError)?;
+
+        let state = draft.state.unwrap_or_default();
+        let impact = draft.impact.unwrap_or_default();
+        let urgency = draft.urgency.unwrap_or_default();
+        let priority = Priority::from(impact.clone(), urgency.clone());
+
+        let task = Self {
             id: None,
-            state: draft.state,
-            impact: draft.impact,
-            urgency: draft.urgency,
-            priority: draft.priority,
-            assigned_to: draft.assigned_to.map(|id| RecordId::parse_simple(&id).unwrap())
-        }
+            state,
+            impact,
+            urgency,
+            priority,
+            opened: Datetime::now(),
+            closed: None,
+            assigned_to: user_id.ok()
+        };
+
+        Ok(task)
     }
 }
 
-#[derive(Serialize, SurrealValue)]
+
+#[derive(Serialize)]
 pub struct TaskView {
     id: RecordId,
     state: State,
     impact: Impact,
     urgency: Urgency,
-    priority: Priority
+    priority: Priority,
+    opened: Datetime,
+    closed: Option<Datetime>
 }
 
 impl From<Task> for TaskView {
@@ -57,7 +79,9 @@ impl From<Task> for TaskView {
             state: task.state,
             impact: task.impact,
             urgency: task.urgency,
-            priority: task.priority
+            priority: task.priority,
+            opened: task.opened,
+            closed: task.closed
         }
     }
 }
@@ -65,8 +89,9 @@ impl From<Task> for TaskView {
 impl Service for TaskService<TaskRepository, UserRepository, GroupRepository> {
     type View = TaskView;
     type Draft = TaskDraft;
+    type Id = RecordId;
 
-    async fn get_by_id(&self, id: RecordId) -> Result<Option<Self::View>, ApiError> {
+    async fn get_by_id(&self, id: Self::Id) -> Result<Option<Self::View>, ApiError> {
         let view = self.task_repository
             .get(id)
             .await?
@@ -88,8 +113,9 @@ impl Service for TaskService<TaskRepository, UserRepository, GroupRepository> {
     }
 
     async fn create(&self, draft: Self::Draft) -> Result<Self::View, ApiError> {
-        let task = Task::from(draft);
+        let task = Task::try_from(draft)?;
         let task = self.task_repository.create(task).await?;
+
         Ok(TaskView::from(task))
     }
 }

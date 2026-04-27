@@ -41,8 +41,9 @@ impl From<User> for UserView {
 impl Service for UserService<UserRepository> {
     type View = UserView;
     type Draft = UserDraft;
+    type Id = RecordId;
 
-    async fn get_by_id(&self, id: RecordId) -> Result<Option<Self::View>, ApiError> {
+    async fn get_by_id(&self, id: Self::Id) -> Result<Option<Self::View>, ApiError> {
         let view = self
             .repository
             .get(id)

@@ -52,8 +52,9 @@ impl From<GroupDraft> for Group {
 impl Service for GroupService<GroupRepository> {
     type View = GroupView;
     type Draft = GroupDraft;
+    type Id = RecordId;
 
-    async fn get_by_id(&self, id: RecordId) -> Result<Option<Self::View>, ApiError> {
+    async fn get_by_id(&self, id: Self::Id) -> Result<Option<Self::View>, ApiError> {
         let group = self.repository
             .get(id)
             .await?

@@ -1,29 +1,32 @@
 use serde::{Deserialize, Serialize};
 use surrealdb::types::SurrealValue;
 
-#[derive(Deserialize, Serialize, SurrealValue)]
+#[derive(Deserialize, Serialize, SurrealValue, Clone, Default)]
 pub enum State {
+    #[default]
     New,
     InProgress,
     Completed
 }
 
-#[derive(Deserialize, Serialize, SurrealValue)]
+#[derive(Deserialize, Serialize, SurrealValue, Clone, Default)]
 pub enum Impact {
     Enterprise,
     Department,
     MultipleUsers,
+    #[default]
     User
 }
 
-#[derive(Deserialize, Serialize, SurrealValue)]
+#[derive(Deserialize, Serialize, SurrealValue, Clone, Default)]
 pub enum Urgency {
     High,
     Medium,
+    #[default]
     Low
 }
 
-#[derive(Deserialize, Serialize, SurrealValue)]
+#[derive(Deserialize, Serialize, SurrealValue, Clone)]
 pub enum Priority {
     Critical,
     High,

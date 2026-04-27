@@ -2,7 +2,7 @@ use std::sync::Arc;
 use surrealdb::types::RecordId;
 use surrealdb::{Surreal, engine::local::Db};
 
-use crate::repository::Repository;
+use super::Repository;
 use crate::error::ApiError;
 use crate::models::group::Group;
 
@@ -12,17 +12,20 @@ pub struct GroupRepository {
     table: &'static str
 }
 
-impl Repository for GroupRepository {
-    type Record = Group;
-
-    fn new(db: Arc<Surreal<Db>>) -> Self {
+impl GroupRepository {
+    pub fn new(db: Arc<Surreal<Db>>) -> Self {
         Self {
             db,
             table: "group"
         }
     }
+}
 
-    async fn get(&self, id: RecordId) -> Result<Option<Self::Record>, ApiError> {
+impl Repository for GroupRepository {
+    type Record = Group;
+    type Id = RecordId;
+
+    async fn get(&self, id: Self::Id) -> Result<Option<Self::Record>, ApiError> {
         let group= self.db
             .select(id)
             .await?;

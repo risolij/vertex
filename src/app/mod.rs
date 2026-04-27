@@ -7,7 +7,6 @@ use surrealdb::engine::local::Mem;
 use std::sync::Arc;
 use crate::repository::group_repository::GroupRepository;
 use crate::service::{GroupService, TaskService, UserService};
-use crate::repository::Repository;
 use crate::repository::task_repository::TaskRepository;
 use crate::repository::user_repository::UserRepository;
 

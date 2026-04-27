@@ -2,7 +2,8 @@ use std::sync::Arc;
 use surrealdb::Surreal;
 use surrealdb::engine::local::Db;
 use surrealdb::types::RecordId;
-use crate::{error::ApiError, models::task::{Task, TaskDraft}};
+use crate::error::ApiError;
+use crate::models::task::Task;
 use super::Repository;
 
 #[derive(Clone)]
@@ -11,17 +12,20 @@ pub struct TaskRepository {
     table: &'static str
 }
 
-impl Repository for TaskRepository {
-    type Record = Task;
-
-    fn new(db: Arc<Surreal<Db>>) -> Self {
+impl TaskRepository {
+    pub fn new(db: Arc<Surreal<Db>>) -> Self {
         Self {
             db,
             table: "task"
         }
     }
+}
 
-    async fn get(&self, id: RecordId) -> Result<Option<Self::Record>, ApiError> {
+impl Repository for TaskRepository {
+    type Record = Task;
+    type Id = RecordId;
+
+    async fn get(&self, id: Self::Id) -> Result<Option<Self::Record>, ApiError> {
         let task = self.db
             .select(id)
             .await?;

@@ -2,7 +2,8 @@ use std::sync::Arc;
 use surrealdb::Surreal;
 use surrealdb::engine::local::Db;
 use surrealdb::types::RecordId;
-use crate::{error::ApiError, models::user::{User, UserDraft}};
+use crate::error::ApiError;
+use crate::models::user::User;
 use super::Repository;
 
 #[derive(Clone)]
@@ -11,17 +12,20 @@ pub struct UserRepository {
     table: &'static str
 }
 
-impl Repository for UserRepository {
-    type Record = User;
-
-    fn new(db: Arc<Surreal<Db>>) -> Self {
+impl UserRepository {
+    pub fn new(db: Arc<Surreal<Db>>) -> Self {
         Self {
             db,
             table: "user"
         }
     }
+}
 
-    async fn get(&self, id: RecordId) -> Result<Option<Self::Record>, ApiError> {
+impl Repository for UserRepository {
+    type Record = User;
+    type Id = RecordId;
+
+    async fn get(&self, id: Self::Id) -> Result<Option<Self::Record>, ApiError> {
         let user = self.db
             .select(id)
             .await
