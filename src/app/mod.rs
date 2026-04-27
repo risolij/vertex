@@ -5,6 +5,7 @@ use axum::Router;
 use surrealdb::Surreal;
 use surrealdb::engine::local::Mem;
 use std::sync::Arc;
+use crate::models::db::Database;
 use crate::service::{GroupService, MemberService, TaskService, UserService};
 use crate::repository::{
     task_repository::TaskRepository,
@@ -16,17 +17,23 @@ use crate::repository::{
 use crate::app::state::ApplicationState;
 
 pub async fn run() {
-    let db = Arc::new(Surreal::new::<Mem>(()).await.unwrap());
+    let db = Arc::new(Surreal::new::<Mem>(())
+        .await
+        .unwrap());
+
     db
         .use_ns("app")
         .use_db("app")
         .await
         .unwrap();
 
-    let task_repository = TaskRepository::new(db.clone());
-    let user_repository = UserRepository::new(db.clone());
-    let group_repository = GroupRepository::new(db.clone());
-    let member_repository= MemberRepository::new(db);
+    let database = Database::new(db);
+
+
+    let task_repository = TaskRepository::new(database.clone());
+    let user_repository = UserRepository::new(database.clone());
+    let group_repository = GroupRepository::new(database.clone());
+    let member_repository= MemberRepository::new(database);
 
     let task_service = TaskService::new(
         task_repository.clone(),

@@ -1,18 +1,17 @@
-use std::sync::Arc;
 use surrealdb::types::RecordId;
-use surrealdb::{Surreal, engine::local::Db};
 
 use crate::error::ApiError;
+use crate::models::db::Database;
 use crate::models::group::Group;
 
 #[derive(Clone)]
 pub struct GroupRepository {
-    db: Arc<Surreal<Db>>,
+    db: Database,
     table: &'static str
 }
 
 impl GroupRepository {
-    pub fn new(db: Arc<Surreal<Db>>) -> Self {
+    pub fn new(db: Database) -> Self {
         Self {
             db,
             table: "group"
@@ -28,28 +27,14 @@ pub trait GroupRepo {
 
 impl GroupRepo for GroupRepository {
     async fn get(&self, id: RecordId) -> Result<Option<Group>, ApiError> {
-        let group= self.db
-            .select(id)
-            .await?;
-
-        Ok(group)
+        self.db.get(id).await
     }
 
     async fn list(&self) -> Result<Vec<Group>, ApiError> {
-        let groups= self.db
-            .select(self.table)
-            .await?;
-
-        Ok(groups)
+        self.db.list(self.table).await
     }
 
     async fn create(&self, group: Group) -> Result<Group, ApiError> {
-        let group = self.db
-            .create(self.table)
-            .content(group)
-            .await?
-            .ok_or(ApiError::InternalServerError)?;
-
-        Ok(group)
+        self.db.create(self.table, group).await
     }
 }
