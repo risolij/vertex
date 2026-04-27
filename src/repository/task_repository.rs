@@ -4,7 +4,6 @@ use surrealdb::engine::local::Db;
 use surrealdb::types::RecordId;
 use crate::error::ApiError;
 use crate::models::task::Task;
-use super::Repository;
 
 #[derive(Clone)]
 pub struct TaskRepository {
@@ -21,27 +20,32 @@ impl TaskRepository {
     }
 }
 
-impl Repository for TaskRepository {
-    type Record = Task;
-    type Id = RecordId;
+pub trait TaskRepo {
+    async fn get(&self, id: RecordId) -> Result<Option<Task>, ApiError>;
+    async fn list(&self) -> Result<Vec<Task>, ApiError>;
+    async fn create(&self, task: Task) -> Result<Task, ApiError>;
+}
 
-    async fn get(&self, id: Self::Id) -> Result<Option<Self::Record>, ApiError> {
+impl TaskRepo for TaskRepository {
+    async fn get(&self, id: RecordId) -> Result<Option<Task>, ApiError> {
         let task = self.db
             .select(id)
             .await?;
 
         Ok(task)
+        
     }
 
-    async fn list(&self) -> Result<Vec<Self::Record>, ApiError> {
+    async fn list(&self) -> Result<Vec<Task>, ApiError> {
         let tasks = self.db
             .select(self.table)
             .await?;
 
         Ok(tasks)
+        
     }
 
-    async fn create(&self, task: Self::Record) -> Result<Self::Record, ApiError> {
+    async fn create(&self, task: Task) -> Result<Task, ApiError> {
         let task = self.db
             .create(self.table)
             .content(task)

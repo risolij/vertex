@@ -2,7 +2,6 @@ use std::sync::Arc;
 use surrealdb::types::RecordId;
 use surrealdb::{Surreal, engine::local::Db};
 
-use super::Repository;
 use crate::error::ApiError;
 use crate::models::group::Group;
 
@@ -21,11 +20,14 @@ impl GroupRepository {
     }
 }
 
-impl Repository for GroupRepository {
-    type Record = Group;
-    type Id = RecordId;
+pub trait GroupRepo {
+    async fn get(&self, id: RecordId) -> Result<Option<Group>, ApiError>;
+    async fn list(&self) -> Result<Vec<Group>, ApiError>;
+    async fn create(&self, group: Group) -> Result<Group, ApiError>;
+}
 
-    async fn get(&self, id: Self::Id) -> Result<Option<Self::Record>, ApiError> {
+impl GroupRepo for GroupRepository {
+    async fn get(&self, id: RecordId) -> Result<Option<Group>, ApiError> {
         let group= self.db
             .select(id)
             .await?;
@@ -33,7 +35,7 @@ impl Repository for GroupRepository {
         Ok(group)
     }
 
-    async fn list(&self) -> Result<Vec<Self::Record>, ApiError> {
+    async fn list(&self) -> Result<Vec<Group>, ApiError> {
         let groups= self.db
             .select(self.table)
             .await?;
@@ -41,8 +43,8 @@ impl Repository for GroupRepository {
         Ok(groups)
     }
 
-    async fn create(&self, group: Self::Record) -> Result<Self::Record, ApiError> {
-        let group: Self::Record = self.db
+    async fn create(&self, group: Group) -> Result<Group, ApiError> {
+        let group = self.db
             .create(self.table)
             .content(group)
             .await?

@@ -3,8 +3,6 @@ use surrealdb::{Surreal, engine::local::Db, types::RecordId};
 
 use crate::models::member::Member;
 use crate::error::ApiError;
-use super::Repository;
-
 
 #[derive(Clone)]
 pub struct MemberRepository {
@@ -21,11 +19,14 @@ impl MemberRepository {
     }
 }
 
-impl Repository for MemberRepository {
-    type Record = Member;
-    type Id = RecordId;
+pub trait MemberRepo {
+    async fn get(&self, id: RecordId) -> Result<Option<Member>, ApiError>;
+    async fn list(&self) -> Result<Vec<Member>, ApiError>;
+    async fn create(&self, member: Member) -> Result<Member, ApiError>;
+}
 
-    async fn get(&self, id: Self::Id) -> Result<Option<Self::Record>, ApiError> {
+impl MemberRepo for MemberRepository {
+    async fn get(&self, id: RecordId) -> Result<Option<Member>, ApiError> {
         let member = self.db
             .select(id)
             .await?;
@@ -33,7 +34,7 @@ impl Repository for MemberRepository {
         Ok(member)
     }
 
-    async fn list(&self) -> Result<Vec<Self::Record>, ApiError> {
+    async fn list(&self) -> Result<Vec<Member>, ApiError> {
         let members = self.db
             .select(self.table)
             .await?;
@@ -41,7 +42,7 @@ impl Repository for MemberRepository {
         Ok(members)
     }
 
-    async fn create(&self, member: Self::Record) -> Result<Self::Record, ApiError> {
+    async fn create(&self, member: Member) -> Result<Member, ApiError> {
         let member = self.db
             .create(self.table)
             .content(member)

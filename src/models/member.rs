@@ -1,7 +1,13 @@
 use serde::{Deserialize, Serialize};
 use surrealdb::types::{SurrealValue, RecordId};
 
-use crate::{error::ApiError, repository::{Repository, group_repository::GroupRepository, member_repository::MemberRepository, user_repository::UserRepository}, service::{MemberService, Service}};
+use crate::error::ApiError;
+use crate::repository::{
+    group_repository::GroupRepo,
+    member_repository::MemberRepo,
+    user_repository::UserRepo
+};
+use crate::service::{MemberService, Service};
 
 #[derive(SurrealValue, Deserialize, Serialize)]
 pub struct Member {
@@ -45,7 +51,12 @@ impl TryFrom<Member> for MemberView {
     }
 }
 
-impl Service for MemberService<MemberRepository, UserRepository, GroupRepository> {
+impl<M, U, G> Service for MemberService<M, U, G>
+where
+    M: MemberRepo,
+    U: UserRepo,
+    G: GroupRepo
+{
     type Id = RecordId;
     type View = MemberView;
     type Draft = MemberDraft;

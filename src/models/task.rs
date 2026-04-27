@@ -3,11 +3,10 @@ use serde::{Deserialize, Serialize};
 
 use super::criticality::{State, Impact, Urgency, Priority};
 use crate::error::ApiError;
-use crate::repository::group_repository::GroupRepository;
 use crate::service::{Service, TaskService};
-use crate::repository::task_repository::TaskRepository;
-use crate::repository::user_repository::UserRepository;
-use crate::repository::Repository;
+use crate::repository::task_repository::TaskRepo;
+use crate::repository::user_repository::UserRepo;
+use crate::repository::group_repository::GroupRepo;
 
 #[derive(Deserialize, Serialize, SurrealValue)]
 pub struct Task {
@@ -90,7 +89,12 @@ impl TryFrom<Task> for TaskView {
     }
 }
 
-impl Service for TaskService<TaskRepository, UserRepository, GroupRepository> {
+impl<T, U, G> Service for TaskService<T, U, G>
+where
+    T: TaskRepo,
+    U: UserRepo,
+    G: GroupRepo
+{
     type View = TaskView;
     type Draft = TaskDraft;
     type Id = RecordId;

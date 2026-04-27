@@ -1,7 +1,6 @@
 use crate::error::ApiError;
 use crate::service::{Service, UserService};
-use crate::repository::Repository;
-use crate::repository::user_repository::UserRepository;
+use crate::repository::user_repository::UserRepo;
 use surrealdb::types::{RecordId, SurrealValue};
 use serde::{Deserialize, Serialize};
 
@@ -38,7 +37,10 @@ impl From<User> for UserView {
     }
 }
 
-impl Service for UserService<UserRepository> {
+impl<U> Service for UserService<U>
+where
+    U: UserRepo
+{
     type View = UserView;
     type Draft = UserDraft;
     type Id = RecordId;

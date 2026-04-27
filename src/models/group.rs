@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use surrealdb::types::{RecordId, SurrealValue};
-use crate::repository::Repository;
-use crate::repository::group_repository::GroupRepository;
+use crate::repository::group_repository::GroupRepo;
 use crate::service::{GroupService, Service};
 use crate::error::ApiError;
 
@@ -49,7 +48,10 @@ impl From<GroupDraft> for Group {
     }
 }
 
-impl Service for GroupService<GroupRepository> {
+impl<G> Service for GroupService<G>
+where
+    G: GroupRepo
+{
     type View = GroupView;
     type Draft = GroupDraft;
     type Id = RecordId;

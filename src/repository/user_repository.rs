@@ -4,7 +4,6 @@ use surrealdb::engine::local::Db;
 use surrealdb::types::RecordId;
 use crate::error::ApiError;
 use crate::models::user::User;
-use super::Repository;
 
 #[derive(Clone)]
 pub struct UserRepository {
@@ -21,19 +20,23 @@ impl UserRepository {
     }
 }
 
-impl Repository for UserRepository {
-    type Record = User;
-    type Id = RecordId;
+pub trait UserRepo {
+    async fn get(&self, id: RecordId) -> Result<Option<User>, ApiError>;
+    async fn list(&self) -> Result<Vec<User>, ApiError>;
+    async fn create(&self, user: User) -> Result<User, ApiError>;
+}
 
-    async fn get(&self, id: Self::Id) -> Result<Option<Self::Record>, ApiError> {
+impl UserRepo for UserRepository {
+    async fn get(&self, id: RecordId) -> Result<Option<User>, ApiError> {
         let user = self.db
             .select(id)
             .await?;
 
         Ok(user)
+        
     }
 
-    async fn list(&self) -> Result<Vec<Self::Record>, ApiError> {
+    async fn list(&self) -> Result<Vec<User>, ApiError> {
         let users = self.db
             .select(self.table)
             .await?;
@@ -41,7 +44,7 @@ impl Repository for UserRepository {
         Ok(users)
     }
 
-    async fn create(&self, user: Self::Record) -> Result<Self::Record, ApiError> {
+    async fn create(&self, user: User) -> Result<User, ApiError> {
         let user = self.db
             .create(self.table)
             .content(user)

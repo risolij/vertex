@@ -1,5 +1,8 @@
 use crate::error::ApiError; 
-use crate::repository::Repository;
+use crate::repository::group_repository::GroupRepo;
+use crate::repository::member_repository::MemberRepo;
+use crate::repository::task_repository::TaskRepo;
+use crate::repository::user_repository::UserRepo;
 
 pub trait Service {
     type View;
@@ -14,14 +17,14 @@ pub trait Service {
 #[derive(Clone)]
 pub struct UserService<R>
 where
-    R: Repository
+    R: UserRepo
 {
     pub repository: R
 }
 
 impl<R> UserService<R>
 where
-    R: Repository
+    R: UserRepo
 {
     pub fn new(repository: R) -> Self {
         Self { repository }
@@ -31,9 +34,9 @@ where
 #[derive(Clone)]
 pub struct TaskService<T, U, G>
 where
-    T: Repository,
-    U: Repository,
-    G: Repository
+    T: TaskRepo,
+    U: UserRepo,
+    G: GroupRepo
 {
     pub task_repository: T,
     pub user_repository: U,
@@ -42,9 +45,9 @@ where
 
 impl<T, U, G> TaskService<T, U, G>
 where
-    T: Repository,
-    U: Repository,
-    G: Repository
+    T: TaskRepo,
+    U: UserRepo,
+    G: GroupRepo
 {
     pub fn new(task_repository: T, user_repository: U, group_repository: G) -> Self {
         Self {
@@ -58,14 +61,14 @@ where
 #[derive(Clone)]
 pub struct GroupService<G>
 where
-    G: Repository
+    G: GroupRepo
 {
     pub repository: G
 }
 
 impl<G> GroupService<G>
 where
-    G: Repository
+    G: GroupRepo
 {
     pub fn new(repository: G) -> Self {
         Self {
@@ -77,9 +80,9 @@ where
 #[derive(Clone)]
 pub struct MemberService<M, U, G>
 where
-    M: Repository,
-    U: Repository,
-    G: Repository
+    M: MemberRepo,
+    U: UserRepo,
+    G: GroupRepo
 {
     pub member_repository: M,
     pub user_repository: U,
@@ -89,9 +92,9 @@ where
 
 impl<M, U, G> MemberService<M, U, G>
 where
-    M: Repository,
-    U: Repository,
-    G: Repository
+    M: MemberRepo,
+    U: UserRepo,
+    G: GroupRepo
 {
     pub fn new(member_repository: M, user_repository: U, group_repository: G) -> Self {
         Self {
