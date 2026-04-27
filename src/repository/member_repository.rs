@@ -12,6 +12,15 @@ pub struct MemberRepository {
     table: &'static str
 }
 
+impl MemberRepository {
+    pub fn new(db: Arc<Surreal<Db>>) -> Self {
+        Self {
+            db,
+            table: "member"
+        }
+    }
+}
+
 impl Repository for MemberRepository {
     type Record = Member;
     type Id = RecordId;

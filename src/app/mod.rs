@@ -5,10 +5,13 @@ use axum::Router;
 use surrealdb::Surreal;
 use surrealdb::engine::local::Mem;
 use std::sync::Arc;
-use crate::repository::group_repository::GroupRepository;
-use crate::service::{GroupService, TaskService, UserService};
-use crate::repository::task_repository::TaskRepository;
-use crate::repository::user_repository::UserRepository;
+use crate::service::{GroupService, MemberService, TaskService, UserService};
+use crate::repository::{
+    task_repository::TaskRepository,
+    user_repository::UserRepository,
+    member_repository::MemberRepository,
+    group_repository::GroupRepository
+};
 
 use crate::app::state::ApplicationState;
 
@@ -22,7 +25,8 @@ pub async fn run() {
 
     let task_repository = TaskRepository::new(db.clone());
     let user_repository = UserRepository::new(db.clone());
-    let group_repository = GroupRepository::new(db);
+    let group_repository = GroupRepository::new(db.clone());
+    let member_repository= MemberRepository::new(db);
 
     let task_service = TaskService::new(
         task_repository.clone(),
@@ -32,11 +36,13 @@ pub async fn run() {
 
     let group_service = GroupService::new(group_repository);
     let user_service = UserService::new(user_repository);
+    let member_service = MemberService::new(member_repository);
 
     let app_state = ApplicationState::new(
         task_service,
         user_service,
-        group_service
+        group_service,
+        member_service
     );
 
     let api_routes = router::create_router(app_state);
