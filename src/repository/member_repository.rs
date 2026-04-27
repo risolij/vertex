@@ -17,16 +17,28 @@ impl Repository for MemberRepository {
     type Id = RecordId;
 
     async fn get(&self, id: Self::Id) -> Result<Option<Self::Record>, ApiError> {
-        todo!();
+        let member = self.db
+            .select(id)
+            .await?;
+
+        Ok(member)
     }
 
     async fn list(&self) -> Result<Vec<Self::Record>, ApiError> {
-        todo!();
+        let members = self.db
+            .select(self.table)
+            .await?;
+
+        Ok(members)
     }
 
-    async fn create(&self, record: Self::Record) -> Result<Self::Record, ApiError> {
-        todo!();
+    async fn create(&self, member: Self::Record) -> Result<Self::Record, ApiError> {
+        let member = self.db
+            .create(self.table)
+            .content(member)
+            .await?
+            .ok_or(ApiError::InternalServerError)?;
+
+        Ok(member)
     }
 }
-
-

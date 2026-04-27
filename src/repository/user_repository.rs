@@ -28,8 +28,7 @@ impl Repository for UserRepository {
     async fn get(&self, id: Self::Id) -> Result<Option<Self::Record>, ApiError> {
         let user = self.db
             .select(id)
-            .await
-            .unwrap_or(None);
+            .await?;
 
         Ok(user)
     }
@@ -43,7 +42,7 @@ impl Repository for UserRepository {
     }
 
     async fn create(&self, user: Self::Record) -> Result<Self::Record, ApiError> {
-        let user: Self::Record = self.db
+        let user = self.db
             .create(self.table)
             .content(user)
             .await?

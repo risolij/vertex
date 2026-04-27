@@ -42,7 +42,7 @@ impl Repository for TaskRepository {
     }
 
     async fn create(&self, task: Self::Record) -> Result<Self::Record, ApiError> {
-        let task: Self::Record = self.db
+        let task = self.db
             .create(self.table)
             .content(task)
             .await?
