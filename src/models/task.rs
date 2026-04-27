@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use super::criticality::{State, Impact, Urgency, Priority};
 use crate::error::ApiError;
+use crate::models::id::Id;
 use crate::service::{Service, TaskService};
 use crate::repository::task_repository::TaskRepo;
 use crate::repository::user_repository::UserRepo;
@@ -20,6 +21,48 @@ pub struct Task {
     assigned_to: Option<RecordId>
 }
 
+struct TaskBuilder {
+    state: State,
+    impact: Impact,
+    urgency: Urgency,
+    priority: Priority,
+    opened: Datetime,
+    assigned_to: Option<RecordId>
+}
+
+impl TaskBuilder {
+    fn new(state: State, impact: Impact, urgency: Urgency) -> Self {
+        let priority = Priority::from(impact.clone(), urgency.clone());
+
+        Self {
+            state,
+            impact,
+            urgency,
+            priority,
+            opened: Datetime::now(),
+            assigned_to: None
+        }
+    }
+
+    fn assigned_to(mut self, user: Option<RecordId>) -> Self {
+        self.assigned_to = user;
+        self
+    }
+
+    fn build(self) -> Task {
+        Task {
+            id: None,
+            state: self.state,
+            impact: self.impact,
+            urgency: self.urgency,
+            priority: self.priority,
+            opened: self.opened,
+            closed: None,
+            assigned_to: self.assigned_to
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, SurrealValue)]
 pub struct TaskDraft {
     state: Option<State>,
@@ -27,38 +70,6 @@ pub struct TaskDraft {
     urgency: Option<Urgency>,
     assigned_to: Option<String>
 }
-
-impl TryFrom<TaskDraft> for Task {
-    type Error = ApiError;
-
-    fn try_from(draft: TaskDraft) -> Result<Self, Self::Error> {
-        let user_id = draft
-            .assigned_to
-            .map(|id| {
-                RecordId::parse_simple(&id)
-            })
-            .ok_or(ApiError::UnprocessableId)?;
-
-        let state = draft.state.unwrap_or_default();
-        let impact = draft.impact.unwrap_or_default();
-        let urgency = draft.urgency.unwrap_or_default();
-        let priority = Priority::from(impact.clone(), urgency.clone());
-
-        let task = Self {
-            id: None,
-            state,
-            impact,
-            urgency,
-            priority,
-            opened: Datetime::now(),
-            closed: None,
-            assigned_to: user_id.ok()
-        };
-
-        Ok(task)
-    }
-}
-
 
 #[derive(Serialize)]
 pub struct TaskView {
@@ -117,9 +128,32 @@ where
     }
 
     async fn create(&self, draft: Self::Draft) -> Result<Self::View, ApiError> {
-        let task = Task::try_from(draft)?;
-        let task = self.task_repository.create(task).await?;
+        let state = draft.state.unwrap_or_default();
+        let impact = draft.impact.unwrap_or_default();
+        let urgency = draft.urgency.unwrap_or_default();
 
-        TaskView::try_from(task)
+        let assigned_to = match draft.assigned_to {
+            Some(id) => {
+                let id = Id(id);
+                let id = RecordId::try_from(id)?;
+
+                let exists = self.user_repository
+                    .get(id.clone())
+                    .await?
+                    .is_some();
+
+                exists.then_some(id)
+
+            },
+            None => None,
+        };
+
+        let task = TaskBuilder::new(state, impact, urgency)
+            .assigned_to(assigned_to)
+            .build();
+
+        let saved= self.task_repository.create(task).await?;
+
+        TaskView::try_from(saved)
     }
 }

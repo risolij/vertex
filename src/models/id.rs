@@ -4,7 +4,7 @@ use surrealdb::types::RecordId;
 use crate::error::ApiError;
 
 #[derive(Deserialize, Serialize)]
-pub struct Id(String);
+pub struct Id(pub String);
 
 impl TryFrom<Id> for RecordId {
     type Error = ApiError;
