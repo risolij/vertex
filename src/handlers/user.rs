@@ -1,6 +1,7 @@
 use axum::extract::{Path, State};
 use axum::Json;
 use surrealdb::types::RecordId;
+use crate::models::id::Id;
 use crate::repository::user_repository::UserRepository;
 use crate::models::user::{UserView, UserDraft};
 use crate::service::{Service, UserService};
@@ -18,9 +19,10 @@ pub async fn get_users(
 
 pub async fn get_user(
     State(service): UserProvider,
-    Path(id): Path<String>
+    Path(id): Path<Id>
 ) -> Result<Json<UserView>, ApiError> {
-    let record_id = RecordId::parse_simple(&id).map_err(|_| ApiError::NotFound)?;
+    let record_id = RecordId::try_from(id)?;
+
     let user = service
         .get_by_id(record_id)
         .await?

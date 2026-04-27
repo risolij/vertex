@@ -2,6 +2,7 @@ use axum::extract::{Path, State};
 use axum::Json;
 use surrealdb::types::RecordId;
 use crate::models::group::{GroupDraft, GroupView};
+use crate::models::id::Id;
 use crate::repository::group_repository::GroupRepository;
 use crate::service::{GroupService, Service};
 use crate::error::ApiError;
@@ -18,9 +19,10 @@ pub async fn get_groups(
 
 pub async fn get_group(
     State(service): GroupProvider,
-    Path(id): Path<String>
+    Path(id): Path<Id>
 ) -> Result<Json<GroupView>, ApiError> {
-    let record_id = RecordId::parse_simple(&id).map_err(|_| ApiError::NotFound)?;
+    let record_id = RecordId::try_from(id)?;
+
     let group = service
         .get_by_id(record_id)
         .await?

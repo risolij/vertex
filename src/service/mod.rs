@@ -73,3 +73,23 @@ where
         }
     }
 }
+
+#[derive(Clone)]
+pub struct MemberService<M>
+where
+    M: Repository
+{
+    pub repository: M
+
+}
+
+impl<M> MemberService<M>
+where
+    M: Repository
+{
+    pub fn new(repository: M) -> Self {
+        Self {
+            repository
+        }
+    }
+}

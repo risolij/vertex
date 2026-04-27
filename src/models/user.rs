@@ -48,7 +48,7 @@ impl Service for UserService<UserRepository> {
             .repository
             .get(id)
             .await?
-            .map(|user| UserView::from(user));
+            .map(UserView::from);
 
         Ok(view)
     }
@@ -58,7 +58,7 @@ impl Service for UserService<UserRepository> {
             .list()
             .await?
             .into_iter()
-            .map(|user| UserView::from(user))
+            .map(UserView::from)
             .collect();
 
         Ok(views)

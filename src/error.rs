@@ -17,6 +17,9 @@ pub enum ApiError {
 
     #[error("Internal Server Error")]
     InternalServerError,
+
+    #[error("Unprocessable ID")]
+    UnprocessableId
 }
 
 impl IntoResponse for ApiError {
@@ -33,7 +36,10 @@ impl IntoResponse for ApiError {
             },
             ApiError::Database(db) => {
                 (StatusCode::INTERNAL_SERVER_ERROR, db.to_string())
-            }
+            },
+            ApiError::UnprocessableId => {
+                (StatusCode::UNPROCESSABLE_ENTITY, "Unprocessable ID".to_string())
+            },
         };
 
         let body = Json(json!({

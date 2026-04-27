@@ -1,10 +1,11 @@
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use crate::error::ApiError;
 
 pub mod user_repository;
 pub mod task_repository;
 pub mod group_repository;
-use crate::error::ApiError;
+pub mod member_repository;
 
 pub trait Repository {
     type Record: Serialize + DeserializeOwned + Send + Sync;

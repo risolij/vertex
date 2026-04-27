@@ -38,7 +38,7 @@ impl TryFrom<TaskDraft> for Task {
             .map(|id| {
                 RecordId::parse_simple(&id)
             })
-            .ok_or(ApiError::InternalServerError)?;
+            .ok_or(ApiError::UnprocessableId)?;
 
         let state = draft.state.unwrap_or_default();
         let impact = draft.impact.unwrap_or_default();
@@ -72,17 +72,21 @@ pub struct TaskView {
     closed: Option<Datetime>
 }
 
-impl From<Task> for TaskView {
-    fn from(task: Task) -> Self {
-        Self {
-            id: task.id.unwrap(),
+impl TryFrom<Task> for TaskView {
+    type Error = ApiError;
+
+    fn try_from(task: Task) -> Result<Self, Self::Error> {
+        let task = Self {
+            id: task.id.ok_or(ApiError::UnprocessableId)?,
             state: task.state,
             impact: task.impact,
             urgency: task.urgency,
             priority: task.priority,
             opened: task.opened,
             closed: task.closed
-        }
+        };
+
+        Ok(task)
     }
 }
 
@@ -92,30 +96,26 @@ impl Service for TaskService<TaskRepository, UserRepository, GroupRepository> {
     type Id = RecordId;
 
     async fn get_by_id(&self, id: Self::Id) -> Result<Option<Self::View>, ApiError> {
-        let view = self.task_repository
+        self.task_repository
             .get(id)
             .await?
-            .map(|task| TaskView::from(task));
-
-        Ok(view)
+            .map(TaskView::try_from)
+            .transpose()
     }
 
     async fn get_all(&self) -> Result<Vec<Self::View>, ApiError> {
-        let views = self.task_repository
+        self.task_repository
             .list()
             .await?
             .into_iter()
-            .map(|task| TaskView::from(task))
-            .collect();
-
-        Ok(views)
-        
+            .map(TaskView::try_from)
+            .collect()
     }
 
     async fn create(&self, draft: Self::Draft) -> Result<Self::View, ApiError> {
         let task = Task::try_from(draft)?;
         let task = self.task_repository.create(task).await?;
 
-        Ok(TaskView::from(task))
+        TaskView::try_from(task)
     }
 }

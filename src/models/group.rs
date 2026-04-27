@@ -58,7 +58,7 @@ impl Service for GroupService<GroupRepository> {
         let group = self.repository
             .get(id)
             .await?
-            .map(|group| GroupView::from(group));
+            .map(GroupView::from);
 
         Ok(group)
     }
@@ -68,7 +68,7 @@ impl Service for GroupService<GroupRepository> {
             .list()
             .await?
             .into_iter()
-            .map(|group| GroupView::from(group))
+            .map(GroupView::from)
             .collect();
 
         Ok(groups)

@@ -1,6 +1,7 @@
 use axum::extract::{Path, State};
 use axum::Json;
 use surrealdb::types::RecordId;
+use crate::models::id::Id;
 use crate::repository::group_repository::GroupRepository;
 use crate::repository::user_repository::UserRepository;
 use crate::repository::task_repository::TaskRepository;
@@ -20,10 +21,9 @@ pub async fn get_tasks(
 
 pub async fn get_task(
     State(service): TaskProvider,
-    Path(id): Path<String>
+    Path(id): Path<Id>
 ) -> Result<Json<TaskView>, ApiError> {
-    let record_id = RecordId::parse_simple(&id)
-        .map_err(|e| ApiError::InvalidPath(e.to_string()))?;
+    let record_id = RecordId::try_from(id)?;
 
     let task = service
         .get_by_id(record_id)
