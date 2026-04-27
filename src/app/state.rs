@@ -1,5 +1,10 @@
 use axum::extract::FromRef;
-use crate::service::{GroupService, TaskService, UserService, MemberService};
+use crate::service::{
+    group::GroupService,
+    task::TaskService,
+    user::UserService,
+    member::MemberService
+};
 use crate::repository::{
     user_repository::UserRepository,
     group_repository::GroupRepository,

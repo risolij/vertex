@@ -6,7 +6,12 @@ use surrealdb::Surreal;
 use surrealdb::engine::local::Mem;
 use std::sync::Arc;
 use crate::models::db::Database;
-use crate::service::{GroupService, MemberService, TaskService, UserService};
+use crate::service::{
+    group::GroupService,
+    member::MemberService,
+    task::TaskService,
+    user::UserService
+};
 use crate::repository::{
     task_repository::TaskRepository,
     user_repository::UserRepository,

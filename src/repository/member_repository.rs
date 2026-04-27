@@ -1,5 +1,4 @@
-use std::sync::Arc;
-use surrealdb::{Surreal, engine::local::Db, types::RecordId};
+use surrealdb::types::RecordId;
 
 use crate::models::db::Database;
 use crate::models::member::Member;

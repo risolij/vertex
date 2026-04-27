@@ -4,7 +4,7 @@ use surrealdb::types::RecordId;
 use crate::models::id::Id;
 use crate::repository::user_repository::UserRepository;
 use crate::models::user::{UserView, UserDraft};
-use crate::service::{Service, UserService};
+use crate::service::{Service, user::UserService};
 use crate::error::ApiError;
 
 type UserProvider = State<UserService<UserRepository>>;

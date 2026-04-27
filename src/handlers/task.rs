@@ -5,7 +5,7 @@ use crate::models::id::Id;
 use crate::repository::group_repository::GroupRepository;
 use crate::repository::user_repository::UserRepository;
 use crate::repository::task_repository::TaskRepository;
-use crate::service::{Service, TaskService};
+use crate::service::{Service, task::TaskService};
 use crate::models::task::{TaskDraft, TaskView};
 use crate::error::ApiError;
 

@@ -1,6 +1,3 @@
-use crate::error::ApiError;
-use crate::service::{Service, UserService};
-use crate::repository::user_repository::UserRepo;
 use surrealdb::types::{RecordId, SurrealValue};
 use serde::{Deserialize, Serialize};
 
@@ -34,42 +31,5 @@ impl From<User> for UserView {
         Self {
             name: user.name
         }
-    }
-}
-
-impl<U> Service for UserService<U>
-where
-    U: UserRepo
-{
-    type View = UserView;
-    type Draft = UserDraft;
-    type Id = RecordId;
-
-    async fn get_by_id(&self, id: Self::Id) -> Result<Option<Self::View>, ApiError> {
-        let view = self
-            .repository
-            .get(id)
-            .await?
-            .map(UserView::from);
-
-        Ok(view)
-    }
-
-    async fn get_all(&self) -> Result<Vec<Self::View>, ApiError> {
-        let views = self.repository
-            .list()
-            .await?
-            .into_iter()
-            .map(UserView::from)
-            .collect();
-
-        Ok(views)
-    }
-
-    async fn create(&self, draft: Self::Draft) -> Result<Self::View, ApiError> {
-        let user = User::from(draft);
-        let user = self.repository.create(user).await?;
-
-        Ok(UserView::from(user))
     }
 }

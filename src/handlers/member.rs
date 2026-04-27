@@ -6,7 +6,7 @@ use crate::repository::group_repository::GroupRepository;
 use crate::repository::member_repository::MemberRepository;
 use crate::models::member::{MemberView, MemberDraft};
 use crate::repository::user_repository::UserRepository;
-use crate::service::{Service, MemberService};
+use crate::service::{Service, member::MemberService};
 use crate::error::ApiError;
 
 type MemberProvider = State<MemberService<MemberRepository, UserRepository, GroupRepository>>;

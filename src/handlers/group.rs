@@ -4,7 +4,7 @@ use surrealdb::types::RecordId;
 use crate::models::group::{GroupDraft, GroupView};
 use crate::models::id::Id;
 use crate::repository::group_repository::GroupRepository;
-use crate::service::{GroupService, Service};
+use crate::service::{group::GroupService, Service};
 use crate::error::ApiError;
 
 type GroupProvider = State<GroupService<GroupRepository>>;
