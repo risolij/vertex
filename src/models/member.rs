@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use surrealdb::types::{SurrealValue, RecordId};
 
-use crate::{error::ApiError, repository::{Repository, member_repository::MemberRepository}, service::{MemberService, Service}};
+use crate::{error::ApiError, repository::{Repository, group_repository::GroupRepository, member_repository::MemberRepository, user_repository::UserRepository}, service::{MemberService, Service}};
 
 #[derive(SurrealValue, Deserialize, Serialize)]
 pub struct Member {
@@ -45,13 +45,13 @@ impl TryFrom<Member> for MemberView {
     }
 }
 
-impl Service for MemberService<MemberRepository> {
+impl Service for MemberService<MemberRepository, UserRepository, GroupRepository> {
     type Id = RecordId;
     type View = MemberView;
     type Draft = MemberDraft;
 
     async fn get_all(&self) -> Result<Vec<Self::View>, ApiError> {
-        self.repository
+        self.member_repository
             .list()
             .await?
             .into_iter()
@@ -60,7 +60,7 @@ impl Service for MemberService<MemberRepository> {
     }
 
     async fn get_by_id(&self, id: Self::Id) -> Result<Option<Self::View>, ApiError> {
-        self.repository
+        self.member_repository
             .get(id)
             .await?
             .map(MemberView::try_from)
@@ -69,7 +69,7 @@ impl Service for MemberService<MemberRepository> {
 
     async fn create(&self, draft: Self::Draft) -> Result<Self::View, ApiError> {
         let member = Member::from(draft);
-        let member = self.repository.create(member).await?;
+        let member = self.member_repository.create(member).await?;
 
         MemberView::try_from(member)
     }

@@ -34,9 +34,14 @@ pub async fn run() {
         group_repository.clone()
     );
 
+    let member_service = MemberService::new(
+        member_repository,
+        user_repository.clone(),
+        group_repository.clone()
+    );
+
     let group_service = GroupService::new(group_repository);
     let user_service = UserService::new(user_repository);
-    let member_service = MemberService::new(member_repository);
 
     let app_state = ApplicationState::new(
         task_service,

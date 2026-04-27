@@ -2,12 +2,14 @@ use axum::extract::{Path, State};
 use axum::Json;
 use surrealdb::types::RecordId;
 use crate::models::id::Id;
+use crate::repository::group_repository::GroupRepository;
 use crate::repository::member_repository::MemberRepository;
 use crate::models::member::{MemberView, MemberDraft};
+use crate::repository::user_repository::UserRepository;
 use crate::service::{Service, MemberService};
 use crate::error::ApiError;
 
-type MemberProvider = State<MemberService<MemberRepository>>;
+type MemberProvider = State<MemberService<MemberRepository, UserRepository, GroupRepository>>;
 
 pub async fn get_members(
     State(service): MemberProvider

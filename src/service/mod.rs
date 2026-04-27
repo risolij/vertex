@@ -75,21 +75,29 @@ where
 }
 
 #[derive(Clone)]
-pub struct MemberService<M>
+pub struct MemberService<M, U, G>
 where
-    M: Repository
+    M: Repository,
+    U: Repository,
+    G: Repository
 {
-    pub repository: M
+    pub member_repository: M,
+    pub user_repository: U,
+    pub group_repository: G
 
 }
 
-impl<M> MemberService<M>
+impl<M, U, G> MemberService<M, U, G>
 where
-    M: Repository
+    M: Repository,
+    U: Repository,
+    G: Repository
 {
-    pub fn new(repository: M) -> Self {
+    pub fn new(member_repository: M, user_repository: U, group_repository: G) -> Self {
         Self {
-            repository
+            member_repository,
+            user_repository,
+            group_repository
         }
     }
 }

@@ -12,7 +12,7 @@ pub struct ApplicationState {
     pub tasks: TaskService<TaskRepository, UserRepository, GroupRepository>,
     pub users: UserService<UserRepository>,
     pub groups: GroupService<GroupRepository>,
-    pub members: MemberService<MemberRepository>
+    pub members: MemberService<MemberRepository, UserRepository, GroupRepository>
 }
 
 impl ApplicationState {
@@ -20,7 +20,7 @@ impl ApplicationState {
         tasks: TaskService<TaskRepository, UserRepository, GroupRepository>,
         users: UserService<UserRepository>,
         groups: GroupService<GroupRepository>,
-        members: MemberService<MemberRepository>,
+        members: MemberService<MemberRepository, UserRepository, GroupRepository>,
     ) -> Self {
         Self { tasks, users, groups, members }
     }
@@ -44,7 +44,7 @@ impl FromRef<ApplicationState> for GroupService<GroupRepository> {
     }
 }
 
-impl FromRef<ApplicationState> for MemberService<MemberRepository> {
+impl FromRef<ApplicationState> for MemberService<MemberRepository, UserRepository, GroupRepository> {
     fn from_ref(state: &ApplicationState) -> Self {
         state.members.clone()
     }
